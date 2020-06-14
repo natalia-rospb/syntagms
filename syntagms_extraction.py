@@ -102,10 +102,10 @@ def get_syntagms(text300, number_of_strings):
             else:
                 central_token = process_inpt.format_parse_list([morph.parse(line_tokens[x])])
                 central_parses = list(central_token[0].keys())
-##            # выкидываем триграммы, где центр - ЗП
-##            if central_parses[0].startswith('PM'):
-##                x = x + 1
-##                continue
+            # выкидываем триграммы, где центр - ЗП
+            if central_parses[0].startswith('PM'):
+                x = x + 1
+                continue
             
             #right
             if line_tokens[x+1] in prep.prep_case:
@@ -114,7 +114,7 @@ def get_syntagms(text300, number_of_strings):
                     right_parses.append('Pp,_,%s,_,_,_,_' %str(case))
             else:    
                 right_token = process_inpt.format_parse_list([morph.parse(line_tokens[x+1])])
-                right_parses = list(right_token[0].keys())
+                right_parses = list(right_token[0].keys())   
                 
             # создаем триграммы, комбинаторика    
             trigram = ['0','0','0']
@@ -140,7 +140,8 @@ def get_syntagms(text300, number_of_strings):
                                 trigram_cache[str(trigram)] = gold[str(trigram)]
                                 
             # ставим границу синтагмы, если в списке триграмм для всех разборов трех соседних токенов не нашлось
-            if (len(trigram_cache.keys()) == 0):
+            # или если третий токен в триграмме - ЗП
+            if (len(trigram_cache.keys()) == 0 or right_parses[0].startswith('PM')):
                 y = line.find(line_tokens[x] + ' ' + line_tokens[x+1])
                 z = line.find(line_tokens[x] + line_tokens[x+1])
                 if y > -1:
@@ -151,21 +152,15 @@ def get_syntagms(text300, number_of_strings):
                     n = n+1
                 trigram_cache.clear()
             x = x + 1
-##            if (x == len(line_tokens)- 1):
-##                line = line + '[%s]' %str(n)
         text300_with_syntagm_boundaries += line + '\n'
     return text300_with_syntagm_boundaries
 
 def main(): 
     with open('300.txt') as file300:
         text300 = file300.readlines()
-    #text = ['рано утром в морозном лесу стояли хорошие красные башмаки.']
-    #text = ['Действующему мэру Екатеринбурга Евгению Ройзману также дали слово. Он отметил, что в пояснительной записке законопроекта нет обоснования для отмены прямых выборов. «Когда говорят про экономию, то забывают, что это 150 миллионов раз в пять лет. Но на пиар губернатора тратят 500 миллионов в год», — сказал глава города. Ройзман добавил, что выборы мэра — это «единственная возможность жителей участвовать в политической жизни города», и лишать их этого несправедливо и оскорбительно по отношению к екатеринбуржцам. ']
     file = open('syntagm_result_1500.txt', 'w', encoding='utf-8-sig')
     file.write(get_syntagms(text300, 1500))
     file.close()
-            
-
 
 if __name__=='__main__':
     with Profiler() as p:
